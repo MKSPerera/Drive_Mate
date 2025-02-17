@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Driver {
+  id                Int       @id @default(autoincrement())
+  firstName         String
+  lastName          String
+  email             String    @unique
+  password          String
+  contactNumber     String    @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Vehicle Information
+  vehicleType       String    // e.g., "Sedan", "SUV", "Van"
+  vehicleCapacity   Int       // Number of passengers the vehicle can accommodate
+  vehicleLicense    String    // License plate number or unique vehicle identifier
+
+  // Ranking Metrics
+  totalJobsCompleted Int      @default(0) // Total jobs completed in the last 3 months
+  totalEarnings      Float    @default(0.0) // Total earnings in the last 3 months
+  averageRating      Float    @default(0.0) // Average rating from tourists (e.g., 4.5)
+  cancellationRate   Float    @default(0.0) // Percentage of canceled jobs
+
+  // Relationships
+  availabilities     Availability[] // One-to-many relationship with Availability model
+  jobs               Job[] // Jobs assigned to this driver
+  adminRelations     AdminDriverRelation[] // Many-to-many relationship with Admins
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  adminDriverRelations AdminDriverRelation[]
+}
+
+model AdminDriverRelation {
+  id          Int      @id @default(autoincrement())
+  adminId     Int      // Foreign key linking to the Admin
+  driverId    Int      // Foreign key linking to the Driver
+  isBlocked   Boolean  @default(false) // Indicates if the Driver is blocked by the Admin
+  createdAt   DateTime @default(now())
+
+  admin       Admin    @relation(fields: [adminId], references: [id])
+  driver      Driver   @relation(fields: [driverId], references: [id])
+
+  @@unique([adminId, driverId]) // Ensure a unique relationship between Admin and Driver
+}
+
+model Job {
+  jobId            Int      @id @default(autoincrement())
+  clientName       String
+  nationality      String
+  numberOfPassengers Int
+  pickupLocation   String
+  startDate        DateTime // Start date and time of the job
+  endDate          DateTime // End date and time of the job
+  pickupTime       DateTime
+  distance         Float    // Distance in miles/kilometers
+  paymentAmount    Float    // Amount the driver will be paid
+  additionalDetails String? // Optional field for extra information
+  currentState     JobState @default(PENDING) // Current state of the job
+  jobCreatedAt     DateTime @default(now())
+
+  // Relationships
+  assignedDriverId Int? // Foreign key linking to the Driver who accepted the job
+  assignedDriver   Driver? @relation(fields: [assignedDriverId], references: [id])
+
+}
+
+model Availability {
+  id          Int      @id @default(autoincrement())
+  driverId    Int      // Foreign key linking to the Driver
+  startDate   DateTime // Start date of availability
+  endDate     DateTime // End date of availability
+  status      AvailabilityStatus @default(AVAILABLE) // Available or Busy
+
+  driver      Driver   @relation(fields: [driverId], references: [id])
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BUSY
+}
+
+enum JobState{
+  PENDING
+  ACCEPTED
+  ONGOING
+  COMPLETED
+}

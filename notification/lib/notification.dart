@@ -168,5 +168,21 @@ class BackgroundPatternPainter extends CustomPainter {
       );
     }
 
+    final dotPaint = Paint()
+      ..color = Colors.blue.withOpacity(0.05)
+      ..style = PaintingStyle.fill;
+
+    for (double x = 0; x < size.width; x += spacing * 2) {
+      for (double y = 0; y < size.height; y += spacing * 2) {
+        canvas.drawCircle(Offset(x, y), 2, dotPaint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+  
+
       
 

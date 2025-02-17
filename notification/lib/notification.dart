@@ -149,3 +149,13 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 }
+
+
+class BackgroundPatternPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.blue.withOpacity(0.03)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+

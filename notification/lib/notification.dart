@@ -159,3 +159,14 @@ class BackgroundPatternPainter extends CustomPainter {
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
+      double spacing = 30;
+      for (double i = 0; i < size.height + size.width; i += spacing) {
+      canvas.drawLine(
+        Offset(-size.width + i, size.height + i),
+        Offset(size.width + i, -size.width + i),
+        paint,
+      );
+    }
+
+      
+

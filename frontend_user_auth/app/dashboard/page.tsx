@@ -13,6 +13,12 @@ import { useEffect, useState } from "react"
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [dashboardData, setDashboardData] = useState({
+    totalDrivers: '0',
+    jobsPostedThisMonth: '0',
+    pendingJobs: '0',
+    monthlyRevenue: '$0'
+  })
   const router = useRouter()
 
   useEffect(() => {
@@ -25,15 +31,72 @@ export default function DashboardPage() {
       return
     }
 
-    // If we have both token and user data, we can proceed
-    setIsLoading(false)
+    // Fetch dashboard data from backend
+    fetchDashboardData(token)
   }, [router])
 
+  const fetchDashboardData = async (token) => {
+    try {
+      // Check if the API URL is configured
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        console.warn('API URL not configured. Using fallback data.');
+        setDashboardData({
+          totalDrivers: '231',
+          jobsPostedThisMonth: '47',
+          pendingJobs: '32',
+          monthlyRevenue: '$52,410'
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (!response.ok) {
+        // Fallback to static data if the endpoint isn't available
+        console.warn('Dashboard API returned an error. Using fallback data.');
+        setDashboardData({
+          totalDrivers: '231',
+          jobsPostedThisMonth: '47',
+          pendingJobs: '32',
+          monthlyRevenue: '$52,410'
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      const data = await response.json()
+      setDashboardData({
+        totalDrivers: data.totalDrivers || '0',
+        jobsPostedThisMonth: data.jobsPostedThisMonth || '0',
+        pendingJobs: data.pendingJobs || '0',
+        monthlyRevenue: `$${data.monthlyRevenue || '0'}`
+      })
+      setIsLoading(false)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+      // Fallback to static data if there's an error
+      setDashboardData({
+        totalDrivers: '231',
+        jobsPostedThisMonth: '47',
+        pendingJobs: '32',
+        monthlyRevenue: '$52,410'
+      });
+      setIsLoading(false)
+    }
+  }
+
   const cardData = [
-    { title: "Total Drivers", value: "231", link: "/drivers" },
-    { title: "Active Jobs", value: "47", link: "/job-management" },
-    { title: "Available Vehicles", value: "89", link: null },
-    { title: "Revenue (Monthly)", value: "$52,410", link: null },
+    { title: "Total Drivers", value: dashboardData.totalDrivers, link: "/drivers" },
+    { title: "Jobs Posted This Month", value: dashboardData.jobsPostedThisMonth, link: "/job-management" },
+    { title: "Pending Jobs", value: dashboardData.pendingJobs, link: "/job-management" },
+    { title: "Revenue (Monthly)", value: dashboardData.monthlyRevenue, link: null },
   ]
 
   if (isLoading) {
@@ -56,7 +119,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {cardData.map((card, index) => (
               <Card
                 key={index}
@@ -64,15 +127,15 @@ export default function DashboardPage() {
               >
                 {card.link ? (
                   <Link href={card.link}>
-                    <CardContent className="p-6">
-                      <CardTitle className="text-sm font-medium text-[#6B46C1]">{card.title}</CardTitle>
-                      <div className="text-2xl font-bold mt-2">{card.value}</div>
+                    <CardContent className="p-4 sm:p-6">
+                      <CardTitle className="text-xs sm:text-sm font-medium text-[#6B46C1]">{card.title}</CardTitle>
+                      <div className="text-xl sm:text-2xl font-bold mt-2">{card.value}</div>
                     </CardContent>
                   </Link>
                 ) : (
-                  <CardContent className="p-6">
-                    <CardTitle className="text-sm font-medium text-[#6B46C1]">{card.title}</CardTitle>
-                    <div className="text-2xl font-bold mt-2">{card.value}</div>
+                  <CardContent className="p-4 sm:p-6">
+                    <CardTitle className="text-xs sm:text-sm font-medium text-[#6B46C1]">{card.title}</CardTitle>
+                    <div className="text-xl sm:text-2xl font-bold mt-2">{card.value}</div>
                   </CardContent>
                 )}
               </Card>

@@ -112,3 +112,46 @@ class _AcceptedCompletedJobsPageState extends State<AcceptedCompletedJobsPage> w
         ),
       );
     }
+
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: jobs.length,
+      itemBuilder: (context, index) {
+        final job = jobs[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.purple.withOpacity(0.3), width: 1),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  job['title'] ?? 'Untitled Job',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF65469C),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildInfoItem('Date', job['date']),
+                _buildInfoItem('Time', job['time']),
+                _buildInfoItem('Location', job['location']),
+                _buildInfoItem('Payment', '\$${job['payment']}'),
+                _buildInfoItem('Status', job['status']),
+                if (type == 'completed')
+                  _buildInfoItem('Completed On', job['completedDate']),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+

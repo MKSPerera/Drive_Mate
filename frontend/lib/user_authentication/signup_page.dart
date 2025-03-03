@@ -109,3 +109,44 @@ class _SignupPageState extends State<SignupPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
+                TextFormField(
+                  controller: _firstNameController,
+                  decoration: InputDecoration(
+                    labelText: 'First Name',
+                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  style: const TextStyle(color: Color(0xFF65469C)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your first name';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _lastNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Last Name',
+                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  style: const TextStyle(color: Color(0xFF65469C)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your last name';
+                    }
+                    return null;
+                  },
+                ),

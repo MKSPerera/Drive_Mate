@@ -56,3 +56,22 @@ class _SignupPageState extends State<SignupPage> {
       }
     }
   }
+
+  void _navigateToVehicleInfo() {
+    if (_formKey.currentState!.validate()) {
+      final userInfo = {
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
+        'email': _emailController.text,
+        'password': _passwordController.text,
+        'confirmPassword': _confirmPasswordController.text,
+        'contactNumber': _contactNumberController.text,
+      };
+
+      Navigator.pushNamed(
+        context,
+        '/vehicle-info',
+        arguments: userInfo,
+      );
+    }
+  }

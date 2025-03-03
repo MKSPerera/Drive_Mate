@@ -47,3 +47,33 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
       }
     }
   }
+
+@override
+  Widget build(BuildContext context) {
+    final userInfo =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+
+    return Scaffold(
+      backgroundColor: Color(0xFFD0A9F5),
+      appBar: AppBar(
+        backgroundColor: Color(0xFFD0A9F5),
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Vehicle Details',
+                  style: TextStyle(
+                    color: Color(0xFF65469C),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),

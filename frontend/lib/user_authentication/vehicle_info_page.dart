@@ -77,3 +77,4 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
+                

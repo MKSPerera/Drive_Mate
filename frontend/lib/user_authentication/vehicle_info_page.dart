@@ -97,3 +97,28 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _vehicleCapacityController,
+                  decoration: InputDecoration(
+                    labelText: 'Vehicle Capacity',
+                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Color(0xFF65469C)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter vehicle capacity';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Please enter a valid number';
+                    }
+                    return null;
+                  },
+                ),

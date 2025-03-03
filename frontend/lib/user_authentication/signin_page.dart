@@ -107,3 +107,32 @@ class _SignInPageState extends State<SignInPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
+            TextField(
+              controller: _contactNumberController,
+              decoration: InputDecoration(
+                labelText: 'Contact Number',
+                labelStyle:
+                    const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.3),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                prefixIcon: const Icon(Icons.phone,
+                    color: Color.fromARGB(255, 76, 76, 76)),
+                hintText: 'Enter your contact number',
+                hintStyle: TextStyle(color: Color(0xFF65469C).withOpacity(0.5)),
+              ),
+              keyboardType: TextInputType.phone,
+              style: const TextStyle(color: Color(0xFF65469C)),
+              onChanged: (value) {
+                // Clear error message when user starts typing
+                if (_errorMessage != null) {
+                  setState(() {
+                    _errorMessage = null;
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 16),

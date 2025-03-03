@@ -247,3 +247,32 @@ class _SignupPageState extends State<SignupPage> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 20),
+                if (_errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ElevatedButton(
+                  onPressed: _navigateToVehicleInfo,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF6A11CB),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Next'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

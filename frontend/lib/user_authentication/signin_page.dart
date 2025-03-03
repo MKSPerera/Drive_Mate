@@ -136,3 +136,20 @@ class _SignInPageState extends State<SignInPage> {
               },
             ),
             const SizedBox(height: 16),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                labelStyle:
+                    const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.3),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              obscureText: true,
+              style: const TextStyle(color: Color(0xFF65469C)),
+            ),
+            const SizedBox(height: 20),

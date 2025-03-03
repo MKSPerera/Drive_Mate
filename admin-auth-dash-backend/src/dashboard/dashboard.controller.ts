@@ -5,5 +5,18 @@ import { DashboardService } from './dashboard.service';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
+  @Get('stats')
+  async getStats() {
+    const totalDrivers = await this.dashboardService.getTotalDrivers();
+    const jobsPostedThisMonth = await this.dashboardService.getJobsPostedThisMonth();
+    const pendingJobs = await this.dashboardService.getPendingJobs();
+    const monthlyRevenue = await this.dashboardService.getMonthlyRevenue();
 
+    return {
+      totalDrivers,
+      jobsPostedThisMonth,
+      pendingJobs,
+      monthlyRevenue
+    };
+  }
 } 

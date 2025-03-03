@@ -150,3 +150,27 @@ class _SignupPageState extends State<SignupPage> {
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _contactNumberController,
+                  decoration: InputDecoration(
+                    labelText: 'Contact Number',
+                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  style: const TextStyle(color: Color(0xFF65469C)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your contact number';
+                    } else if (!RegExp(r'^\+?[\d\s-]+$').hasMatch(value)) {
+                      return 'Please enter a valid contact number';
+                    }
+                    return null;
+                  },
+                ),

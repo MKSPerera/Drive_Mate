@@ -122,4 +122,24 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                     return null;
                   },
                 ),
-                
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _vehicleLicenseController,
+                  decoration: InputDecoration(
+                    labelText: 'License Plate Number',
+                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  style: const TextStyle(color: Color(0xFF65469C)),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter license plate number';
+                    }
+                    return null;
+                  },
+                ),

@@ -153,3 +153,31 @@ class _SignInPageState extends State<SignInPage> {
               style: const TextStyle(color: Color(0xFF65469C)),
             ),
             const SizedBox(height: 20),
+            if (_errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _signIn,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF6A11CB),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: _isLoading
+                  ? const CircularProgressIndicator()
+                  : const Text('Sign In'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

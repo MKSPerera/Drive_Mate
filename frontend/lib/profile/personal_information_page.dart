@@ -152,3 +152,5 @@ class _PersonalInformationPageState extends State<PersonalInformationPage> {
                                   content:
                                       Text('Edit functionality coming soon')),
                             );
+                          },
+                            

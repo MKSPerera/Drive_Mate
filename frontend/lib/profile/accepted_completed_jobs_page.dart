@@ -62,3 +62,53 @@ class _AcceptedCompletedJobsPageState extends State<AcceptedCompletedJobsPage> w
     _tabController.dispose();
     super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEDE1FF),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'My Jobs',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: const Color(0xFF65469C),
+          labelColor: Colors.black,
+          tabs: const [
+            Tab(text: 'Accepted'),
+            Tab(text: 'Completed'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildJobList(acceptedJobs, 'accepted'),
+          _buildJobList(completedJobs, 'completed'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJobList(List<Map<String, dynamic>> jobs, String type) {
+    if (jobs.isEmpty) {
+      return Center(
+        child: Text(
+          'No $type jobs found',
+          style: const TextStyle(fontSize: 16, color: Colors.black54),
+        ),
+      );
+    }

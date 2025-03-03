@@ -11,3 +11,22 @@ class PersonalInformationPage extends StatefulWidget {
   _PersonalInformationPageState createState() =>
       _PersonalInformationPageState();
 }
+
+class _PersonalInformationPageState extends State<PersonalInformationPage> {
+  bool _isLoading = true;
+  Map<String, dynamic> userData = {};
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
+  }
+
+  // Get base URL based on platform
+  String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:3000';
+    }
+    return 'http://10.0.2.2:3000';
+  }

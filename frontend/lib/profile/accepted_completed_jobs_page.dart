@@ -29,3 +29,36 @@ class _AcceptedCompletedJobsPageState extends State<AcceptedCompletedJobsPage> w
       'status': 'accepted',
     },
   ];
+
+  final List<Map<String, dynamic>> completedJobs = [
+    {
+      'title': 'Wedding Transport',
+      'date': '2023-09-25',
+      'time': '16:00',
+      'location': 'Grand Plaza Hotel',
+      'payment': '75',
+      'status': 'completed',
+      'completedDate': '2023-09-25',
+    },
+    {
+      'title': 'City Tour',
+      'date': '2023-09-18',
+      'time': '10:00',
+      'location': 'Central Park',
+      'payment': '55',
+      'status': 'completed',
+      'completedDate': '2023-09-18',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }

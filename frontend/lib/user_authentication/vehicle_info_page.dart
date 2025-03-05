@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
+import '../services/secure_storage_service.dart';
 
 class VehicleInfoPage extends StatefulWidget {
   const VehicleInfoPage({super.key});
@@ -32,7 +33,19 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
           'vehicleLicense': _vehicleLicenseController.text,
         };
 
-        await _apiService.registerDriver(completeInfo);
+        final response = await _apiService.registerDriver(completeInfo);
+
+        // Store the token
+        if (response['token'] != null) {
+          await SecureStorageService.storeToken(response['token']);
+
+          // Store driver ID if provided
+          if (response['driver']?['id'] != null) {
+            await SecureStorageService.storeDriverId(
+                response['driver']['id'].toString());
+          }
+        }
+
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(
             context,
@@ -48,7 +61,7 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
     }
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     final userInfo =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -81,7 +94,8 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                   controller: _vehicleTypeController,
                   decoration: InputDecoration(
                     labelText: 'Vehicle Type',
-                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    labelStyle:
+                        const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.3),
                     border: OutlineInputBorder(
@@ -102,7 +116,8 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                   controller: _vehicleCapacityController,
                   decoration: InputDecoration(
                     labelText: 'Vehicle Capacity',
-                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    labelStyle:
+                        const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.3),
                     border: OutlineInputBorder(
@@ -127,7 +142,8 @@ class _VehicleInfoPageState extends State<VehicleInfoPage> {
                   controller: _vehicleLicenseController,
                   decoration: InputDecoration(
                     labelText: 'License Plate Number',
-                    labelStyle: const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
+                    labelStyle:
+                        const TextStyle(color: Color.fromARGB(255, 76, 76, 76)),
                     filled: true,
                     fillColor: Colors.white.withOpacity(0.3),
                     border: OutlineInputBorder(

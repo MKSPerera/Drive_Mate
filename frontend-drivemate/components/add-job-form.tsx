@@ -34,15 +34,20 @@ export function AddJobForm() {
           alert("Start date cannot be earlier than today")
           return prevData
         }
-        if (newData.endDate && value >= newData.endDate) {
-          alert("Start date must be earlier than end date")
+        if (newData.endDate && value > newData.endDate) { 
+          alert("Start date must be earlier than or equal to end date")
           return prevData
         }
       }
 
       if (name === "endDate") {
-        if (value <= newData.startDate) {
-          alert("End date must be later than start date")
+        if (value < newData.startDate) { 
+          alert("End date must be later than or equal to start date")
+          return prevData
+        }
+        const today = new Date().toISOString().split("T")[0]
+        if (value < today) {
+          alert("End date cannot be earlier than today")
           return prevData
         }
       }
@@ -54,8 +59,20 @@ export function AddJobForm() {
   const handleSubmit = async (e: React.FormEvent, isPrivate: boolean) => {
     e.preventDefault()
     setLoading(true)
+
+    if (parseFloat(formData.distance) <= 0) {
+      alert("Distance must be greater than 0")
+      setLoading(false)
+      return
+    }
+
+    if (parseInt(formData.passengers) <= 0) {
+      alert("Number of passengers must be greater than 0")
+      setLoading(false)
+      return
+    }
+
     try {
-      // Format the data to match the backend schema
       const jobData = {
         clientName: formData.clientName,
         nationality: formData.nationality,
@@ -67,7 +84,8 @@ export function AddJobForm() {
         distance: parseFloat(formData.distance),
         paymentAmount: parseFloat(formData.paymentAmount),
         additionalDetails: formData.additionalDetails,
-        currentState: "PENDING"
+        currentState: "PENDING",
+        postType: isPrivate ? "PRIVATE" : "PUBLIC"
       }
 
       const response = await fetch('http://localhost:3333/jobs', {
@@ -83,9 +101,8 @@ export function AddJobForm() {
       }
 
       if (isPrivate) {
-        router.push("/drivers")
+        router.push("/private-jobs")
       } else {
-        // Reset form after public submission
         setFormData({
           clientName: "",
           nationality: "",
@@ -111,170 +128,56 @@ export function AddJobForm() {
     <form className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="clientName" className="text-[#6B46C1]">
-            Name of Client
-          </Label>
-          <Input
-            id="clientName"
-            name="clientName"
-            value={formData.clientName}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-          />
+          <Label htmlFor="clientName" className="text-[#6B46C1]">Name of Client</Label>
+          <Input id="clientName" name="clientName" value={formData.clientName} onChange={handleChange} required className="border-[#8C61FF]" />
         </div>
         <div>
-          <Label htmlFor="nationality" className="text-[#6B46C1]">
-            Nationality
-          </Label>
-          <Input
-            id="nationality"
-            name="nationality"
-            value={formData.nationality}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-          />
+          <Label htmlFor="nationality" className="text-[#6B46C1]">Nationality</Label>
+          <Input id="nationality" name="nationality" value={formData.nationality} onChange={handleChange} required className="border-[#8C61FF]" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="passengers" className="text-[#6B46C1]">
-            Number of Passengers
-          </Label>
-          <Input
-            id="passengers"
-            name="passengers"
-            type="number"
-            value={formData.passengers}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-          />
+          <Label htmlFor="passengers" className="text-[#6B46C1]">Number of Passengers</Label>
+          <Input id="passengers" name="passengers" type="number" value={formData.passengers} onChange={handleChange} required className="border-[#8C61FF]" />
         </div>
         <div>
-          <Label htmlFor="pickupLocation" className="text-[#6B46C1]">
-            Pickup Location
-          </Label>
-          <Input
-            id="pickupLocation"
-            name="pickupLocation"
-            value={formData.pickupLocation}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-          />
+          <Label htmlFor="pickupLocation" className="text-[#6B46C1]">Pickup Location</Label>
+          <Input id="pickupLocation" name="pickupLocation" value={formData.pickupLocation} onChange={handleChange} required className="border-[#8C61FF]" />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="startDate" className="text-[#6B46C1]">
-            Start Date
-          </Label>
-          <Input
-            id="startDate"
-            name="startDate"
-            type="date"
-            value={formData.startDate}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-            min={new Date().toISOString().split("T")[0]}
-          />
+          <Label htmlFor="startDate" className="text-[#6B46C1]">Start Date</Label>
+          <Input id="startDate" name="startDate" type="date" value={formData.startDate} onChange={handleChange} required className="border-[#8C61FF]" min={new Date().toISOString().split("T")[0]} />
         </div>
         <div>
-          <Label htmlFor="endDate" className="text-[#6B46C1]">
-            End Date
-          </Label>
-          <Input
-            id="endDate"
-            name="endDate"
-            type="date"
-            value={formData.endDate}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-            min={formData.startDate}
-          />
+          <Label htmlFor="endDate" className="text-[#6B46C1]">End Date</Label>
+          <Input id="endDate" name="endDate" type="date" value={formData.endDate} onChange={handleChange} required className="border-[#8C61FF]" min={formData.startDate} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="time" className="text-[#6B46C1]">
-            Time
-          </Label>
-          <Input
-            id="time"
-            name="time"
-            type="time"
-            value={formData.time}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-          />
+          <Label htmlFor="time" className="text-[#6B46C1]">Time</Label>
+          <Input id="time" name="time" type="time" value={formData.time} onChange={handleChange} required className="border-[#8C61FF]" />
         </div>
         <div>
-          <Label htmlFor="distance" className="text-[#6B46C1]">
-            Distance (km)
-          </Label>
-          <Input
-            id="distance"
-            name="distance"
-            type="number"
-            step="0.1"
-            value={formData.distance}
-            onChange={handleChange}
-            required
-            className="border-[#8C61FF]"
-          />
+          <Label htmlFor="distance" className="text-[#6B46C1]">Distance (km)</Label>
+          <Input id="distance" name="distance" type="number" step="0.1" value={formData.distance} onChange={handleChange} required className="border-[#8C61FF]" />
         </div>
       </div>
       <div>
-        <Label htmlFor="paymentAmount" className="text-[#6B46C1]">
-          Payment Amount
-        </Label>
-        <Input
-          id="paymentAmount"
-          name="paymentAmount"
-          type="number"
-          step="0.01"
-          value={formData.paymentAmount}
-          onChange={handleChange}
-          required
-          className="border-[#8C61FF]"
-        />
+        <Label htmlFor="paymentAmount" className="text-[#6B46C1]">Payment Amount</Label>
+        <Input id="paymentAmount" name="paymentAmount" type="number" step="0.01" value={formData.paymentAmount} onChange={handleChange} required className="border-[#8C61FF]" />
       </div>
       <div>
-        <Label htmlFor="additionalDetails" className="text-[#6B46C1]">
-          Additional Details
-        </Label>
-        <Textarea
-          id="additionalDetails"
-          name="additionalDetails"
-          value={formData.additionalDetails}
-          onChange={handleChange}
-          className="border-[#8C61FF]"
-        />
+        <Label htmlFor="additionalDetails" className="text-[#6B46C1]">Additional Details</Label>
+        <Textarea id="additionalDetails" name="additionalDetails" value={formData.additionalDetails} onChange={handleChange} className="border-[#8C61FF]" />
       </div>
       <div className="flex space-x-4">
-        <Button
-          type="submit"
-          className="flex-1 bg-[#8C61FF] hover:bg-[#6B46C1]"
-          onClick={(e) => handleSubmit(e, false)}
-          disabled={loading}
-        >
-          {loading ? "Creating..." : "Public Post"}
-        </Button>
-        <Button 
-          type="submit" 
-          className="flex-1 bg-[#6B46C1] hover:bg-[#5D3FD3]" 
-          onClick={(e) => handleSubmit(e, true)}
-          disabled={loading}
-        >
-          {loading ? "Creating..." : "Private Post"}
-        </Button>
+        <Button type="submit" className="flex-1 bg-[#8C61FF] hover:bg-[#6B46C1] text-white" onClick={(e) => handleSubmit(e, false)} disabled={loading}>{loading ? "Creating..." : "Public Post"}</Button>
+        <Button type="submit" className="flex-1 bg-[#8C61FF] hover:bg-[#6B46C1] text-white" onClick={(e) => handleSubmit(e, true)} disabled={loading}>{loading ? "Creating..." : "Private Post"}</Button>
       </div>
     </form>
   )
 }
-

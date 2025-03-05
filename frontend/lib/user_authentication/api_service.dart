@@ -89,9 +89,17 @@ class ApiService {
       );
 
       if (response.statusCode == 201) {
-        return jsonDecode(response.body);
+        final responseData = jsonDecode(response.body);
+        
+        // Verify token exists in response
+        if (responseData['token'] == null) {
+          throw Exception('Registration successful but no token received');
+        }
+        
+        return responseData;
       } else {
-        throw Exception('Driver registration failed: ${response.body}');
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Driver registration failed');
       }
     } catch (e) {
       throw Exception('Failed to connect to server: $e');

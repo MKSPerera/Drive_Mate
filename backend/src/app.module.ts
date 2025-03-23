@@ -8,7 +8,12 @@ import { PrismaModule } from './prisma/prisma.module';
 import { JobsModule } from './jobs/jobs.module';
 import { AppService } from './app.service';
 import { DriverModule } from './driver/driver.module';
-
+import { CalendarModule } from './calendar/calendar.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { DriverRankingModule } from './driver-ranking/driver-ranking.module';
+import { DriverAvailabilityModule } from './driver-availability/driver-availability.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { NotificationsController } from './notifications/notifications.controller';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,8 +24,13 @@ import { DriverModule } from './driver/driver.module';
     AdminModule,
     AuthModule,
     JobsModule,
+    CalendarModule,
+    DashboardModule,
+    DriverRankingModule,
+    DriverAvailabilityModule,
+    NotificationsModule
   ],
-  controllers: [AppController],
+  controllers: [AppController, NotificationsController],
   providers: [AppService],
 })
 export class AppModule {}

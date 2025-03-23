@@ -45,7 +45,7 @@ jobs:
 
       - name: Prepare deployment package
         run: |
-          mkdir -p ../deploy
+          mkdir -p ../deploy/dist/driver-ranking  # Create the necessary directory structure
           cp -r dist package.json package-lock.json prisma node_modules ../deploy
           cp -r src/driver-ranking/ranking.py ../deploy/dist/driver-ranking/
 

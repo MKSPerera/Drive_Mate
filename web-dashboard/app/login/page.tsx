@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { AtSign, Lock } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { getFCMToken } from "@/lib/firebase"
 
 interface LoginPageProps {
   onLogin: () => void
@@ -35,13 +36,24 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setError(null)
 
     try {
+      // Get FCM token with proper error handling
+      let fcmToken = null;
+      try {
+        fcmToken = await getFCMToken();
+        console.log("FCM Token:", fcmToken ? "Successfully obtained" : "Not available");
+      } catch (tokenError) {
+        console.error("Error getting FCM token:", tokenError);
+        // Continue with login even if token retrieval fails
+      }
+      
       // Make sure we're using the correct credentials format
       const loginData = {
         emailOrUsername: formData.emailOrUsername,
-        password: formData.password
+        password: formData.password,
+        fcmToken: fcmToken // May be null if token retrieval failed
       }
 
-      const response = await fetch('http://localhost:3333/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

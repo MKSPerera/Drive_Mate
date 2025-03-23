@@ -3,6 +3,8 @@ import 'job_board.dart'; // Import the separated job board file
 import 'job_details.dart'; // Add this import
 import '../nav_bar/nav_bar.dart';
 
+/// Main homepage of the app.
+/// Displays a search bar and integrates the job board.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -12,19 +14,20 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-  int _selectedNavIndex = 0; // Renamed from _selectedTabIndex for nav bar
-  int _jobBoardTabIndex = 0; // New separate state for job board tabs
+  int _selectedNavIndex = 0; // Index for the selected navigation item
+  int _jobBoardTabIndex = 0; // Index for the selected job board tab
 
+  /// Handles navigation bar item taps
   void _onNavBarItemTapped(int index) {
     if (index == _selectedNavIndex) {
       return; // Don't navigate if already on the page
     }
 
     setState(() {
-      _selectedNavIndex = index; // Updated variable name
+      _selectedNavIndex = index; // Update selected index
     });
 
-    // Handle navigation based on index
+    // Navigate to the selected page
     switch (index) {
       case 0: // Home - already on home page
         break;

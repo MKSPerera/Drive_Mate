@@ -15,9 +15,14 @@ import 'profile/legal_terms_page.dart';
 import 'profile/settings_page.dart';
 import 'notifications/notifications_page.dart';
 import 'ongoing_jobs/ongoing_jobs_page.dart';
+import 'services/fcm_service.dart';
+import 'services/notification_service.dart';
 // Import other pages as needed
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FCMService.initialize();
+  await NotificationService.setupNotificationHandlers();
   runApp(const MyApp());
 }
 

@@ -3,9 +3,11 @@ import 'job_details.dart'; // Import JobDetailsPage
 import '../services/job_service.dart';
 import '../services/secure_storage_service.dart';
 
+/// Displays a list of available and accepted jobs.
+/// Allows users to view job details and accept/reject jobs.
 class JobBoard extends StatefulWidget {
-  final Function(int) onTabChanged;
-  final int selectedTabIndex;
+  final Function(int) onTabChanged; // Callback for tab change
+  final int selectedTabIndex; // Currently selected tab index
 
   const JobBoard({
     super.key,
@@ -18,18 +20,19 @@ class JobBoard extends StatefulWidget {
 }
 
 class _JobBoardState extends State<JobBoard> {
-  final JobService _jobService = JobService();
-  List<bool> _expandedPosts = [];
-  List<Map<String, dynamic>> availableJobs = [];
-  List<Map<String, dynamic>> acceptedJobs = [];
-  bool isLoading = true;
+  final JobService _jobService = JobService(); // Service for job-related API calls
+  List<bool> _expandedPosts = []; // Track expanded state of job cards
+  List<Map<String, dynamic>> availableJobs = []; // List of available jobs
+  List<Map<String, dynamic>> acceptedJobs = []; // List of accepted jobs
+  bool isLoading = true; // Indicates if jobs are being loaded
 
   @override
   void initState() {
     super.initState();
-    _loadJobs();
+    _loadJobs(); // Load jobs on initialization
   }
 
+  /// Loads available and accepted jobs from the backend
   Future<void> _loadJobs() async {
     try {
       setState(() => isLoading = true);
@@ -50,7 +53,7 @@ class _JobBoardState extends State<JobBoard> {
         myJobs = await _jobService.getMyJobs();
         print('Successfully loaded ${myJobs.length} accepted jobs');
       } catch (e) {
-        print('Error loading my jobs: $e');
+        print('Error loading accepted jobs: $e');
         // Continue with empty list rather than failing completely
       }
 
@@ -100,19 +103,145 @@ class _JobBoardState extends State<JobBoard> {
 
   Future<void> acceptJob(Map<String, dynamic> job) async {
     try {
-      // Remove driverId parameter as it will be extracted from token
-      await _jobService.acceptJob(job['jobId']);
+      print('Starting job acceptance process...'); // Debug log
+      print('Job data: ${job.toString()}'); // Log job data
 
-      // Reload jobs after accepting
-      await _loadJobs();
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Accepting job...')),
+        );
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Job accepted successfully')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to accept job: ${e.toString()}')),
-      );
+      // Validate job ID
+      final jobId = job['jobId'];
+      print('Extracted jobId: $jobId'); // Log job ID
+
+      if (jobId == null) {
+        throw Exception('Job ID is missing');
+      }
+
+      // Call the API to accept the job
+      print('Calling acceptJob API with jobId: $jobId'); // Log API call
+      final updatedJob = await _jobService.acceptJob(jobId);
+      print('Received updated job: ${updatedJob.toString()}'); // Log response
+
+      // Update the UI state
+      setState(() {
+        print('Updating UI state...'); // Log UI update
+        // Remove the job from available jobs
+        availableJobs
+            .removeWhere((availableJob) => availableJob['jobId'] == jobId);
+        print('Removed job from available jobs'); // Log removal
+
+        // Add the updated job to accepted jobs
+        acceptedJobs.add(updatedJob);
+        print('Added job to accepted jobs'); // Log addition
+
+        // Update expanded posts list length
+        _expandedPosts = List.generate(
+          availableJobs.length + acceptedJobs.length,
+          (index) => false,
+        );
+      });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Job accepted successfully')),
+        );
+      }
+    } catch (e, stackTrace) {
+      // Added stackTrace
+      print('Error accepting job: $e'); // Log error
+      print('Stack trace: $stackTrace'); // Log stack trace
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to accept job: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        // Refresh the job list to ensure UI is in sync with backend
+        print('Refreshing job list after error...'); // Log refresh
+        _loadJobs();
+      }
+    }
+  }
+
+  Future<void> _rejectJob(Map<String, dynamic> job) async {
+    try {
+      print('Starting job rejection process...'); // Debug log
+      print('Job data: ${job.toString()}'); // Log job data
+
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cancelling job...')),
+        );
+      }
+
+      // Validate job ID
+      final jobId = job['jobId'];
+      print('Extracted jobId: $jobId'); // Log job ID
+
+      if (jobId == null) {
+        throw Exception('Job ID is missing');
+      }
+
+      // Call the API to reject the job
+      print('Calling rejectJob API with jobId: $jobId'); // Log API call
+      final updatedJob = await _jobService.rejectJob(jobId,
+          rejectionReason: 'Cancelled by driver');
+      print('Received updated job: ${updatedJob.toString()}'); // Log response
+
+      // Update the UI state
+      setState(() {
+        print('Updating UI state...'); // Log UI update
+        // Remove the job from accepted jobs
+        acceptedJobs
+            .removeWhere((acceptedJob) => acceptedJob['jobId'] == jobId);
+        print('Removed job from accepted jobs'); // Log removal
+
+        // Add the updated job to available jobs if it's still pending
+        if (updatedJob['currentState'] == 'PENDING') {
+          availableJobs.add(updatedJob);
+          print('Added job back to available jobs'); // Log addition
+        }
+
+        // Update expanded posts list length
+        _expandedPosts = List.generate(
+          availableJobs.length + acceptedJobs.length,
+          (index) => false,
+        );
+      });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Job cancelled successfully')),
+        );
+      }
+    } catch (e, stackTrace) {
+      print('Error cancelling job: $e'); // Log error
+      print('Stack trace: $stackTrace'); // Log stack trace
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to cancel job: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        // Refresh the job list to ensure UI is in sync with backend
+        print('Refreshing job list after error...'); // Log refresh
+        _loadJobs();
+      }
     }
   }
 
@@ -241,13 +370,9 @@ class _JobBoardState extends State<JobBoard> {
                                 child: Text('No'),
                               ),
                               TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    acceptedJobs.remove(job);
-                                    job['currentState'] = 'PENDING';
-                                    availableJobs.add(job);
-                                  });
+                                onPressed: () async {
                                   Navigator.of(context).pop();
+                                  await _rejectJob(job);
                                 },
                                 child: Text('Yes'),
                               ),

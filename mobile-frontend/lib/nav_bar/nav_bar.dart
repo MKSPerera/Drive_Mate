@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// Custom navigation bar used throughout the app.
+/// Allows navigation between Home, Calendar, Ongoing Jobs, and Profile.
 class CustomNavBar extends StatefulWidget {
-  final Function(int) onItemTapped;
-  final int selectedIndex;
+  final Function(int) onItemTapped; // Callback for item tap
+  final int selectedIndex; // Currently selected index
 
   const CustomNavBar({super.key, required this.onItemTapped, required this.selectedIndex});
 

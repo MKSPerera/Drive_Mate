@@ -1,0 +1,245 @@
+.custom-day-cell {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  
+  .custom-day-cell:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .rbc-today {
+    background: linear-gradient(45deg, #f0e6ff, #e1d2ff) !important;
+  }
+  
+  .selected-day {
+    background: linear-gradient(45deg, #d4c4ff, #b39dff) !important;
+    font-weight: bold;
+  }
+  
+  .rbc-event {
+    background-color: transparent !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: 16px !important;
+    width: 90% !important; /* Fixed width syntax */
+    z-index: 3 !important;
+
+    /* Pentagon tag shape */
+    clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%);
+}
+
+  
+  .rbc-event-content {
+    height: 100%;
+    position: relative;
+  }
+  
+  .job-tag {
+    margin: 1px 0;
+    max-width: 95%;
+  }
+  
+  .rbc-row-segment {
+    position: relative !important;
+    padding: 0 !important;
+  }
+  
+  .rbc-day-bg {
+    transition: all 0.3s ease;
+  }
+  
+  .rbc-day-bg:hover {
+    background-color: rgba(140, 97, 255, 0.1);
+  }
+  
+  /* Calendar Navigation and View Switcher Styles */
+  .rbc-toolbar {
+    margin-bottom: 20px !important;
+    padding: 10px !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .rbc-toolbar-label {
+    font-weight: bold;
+    color: #6B46C1;
+    font-size: 1.2rem;
+  }
+  
+  .rbc-btn-group {
+    display: flex !important;
+    gap: 5px;
+  }
+  
+  .rbc-btn-group button {
+    background: white !important;
+    color: #6B46C1 !important;
+    border: 1px solid #6B46C1 !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+  }
+  
+  .rbc-btn-group button:hover {
+    background: #F5F3FF !important;
+    transform: translateY(-1px);
+  }
+  
+  .rbc-btn-group button:active {
+    transform: translateY(0);
+  }
+  
+  .rbc-btn-group button.rbc-active {
+    background: #6B46C1 !important;
+    color: white !important;
+    border-color: #6B46C1 !important;
+  }
+  
+  .rbc-btn-group button:first-child {
+    border-radius: 6px !important;
+  }
+  
+  .rbc-btn-group button:last-child {
+    border-radius: 6px !important;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .rbc-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    
+    .rbc-toolbar-label {
+      text-align: center;
+      margin: 10px 0;
+    }
+    
+    .rbc-btn-group {
+      justify-content: center;
+    }
+    
+    .rbc-btn-group button {
+      padding: 6px 12px !important;
+      font-size: 0.9rem;
+    }
+  }
+  
+  /* Override any conflicting styles */
+  .rbc-date-cell {
+    position: relative !important;
+    padding-bottom: 16px !important;
+    min-height: 24px !important;
+  }
+  
+  .rbc-row-bg {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .rbc-month-row + .rbc-month-row {
+    border-top: 1px solid #ddd;
+  }
+  
+  .rbc-month-view {
+    z-index: 0;
+  }
+  
+  /* Navigation buttons specific styles */
+  .rbc-toolbar button {
+    color: #6B46C1 !important;
+    border: 1px solid #6B46C1 !important;
+    background: white !important;
+    padding: 8px 16px !important;
+    margin: 0 !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+  
+  .rbc-toolbar button:hover {
+    background: #F5F3FF !important;
+    transform: translateY(-1px);
+  }
+  
+  .rbc-toolbar button:active {
+    transform: translateY(0);
+  }
+  
+  /* Fix for navigation buttons */
+  .rbc-toolbar .rbc-btn-group:first-child button {
+    position: relative;
+    z-index: 1;
+    margin: 0 2px !important;
+  }
+  
+  .rbc-toolbar .rbc-btn-group:first-child button:hover {
+    z-index: 2;
+  }
+  
+  /* Today button specific style */
+  .rbc-toolbar button.rbc-active {
+    background: #6B46C1 !important;
+    color: white !important;
+    border-color: #6B46C1 !important;
+  }
+  
+  /* Ensure buttons don't collapse on smaller screens */
+  @media (max-width: 768px) {
+    .rbc-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+    
+    .rbc-toolbar .rbc-btn-group {
+      display: flex !important;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    
+    .rbc-toolbar button {
+      padding: 6px 12px !important;
+      font-size: 0.9rem;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+    }
+  }
+
+  .job-indicator {
+    transition: all 0.3s ease;
+    height: 16px !important;
+    width: 100% !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+
+  /* Remove the show more button */
+  .rbc-show-more {
+    display: none !important;
+  }
+
+  /* Remove any default event styles */
+  .rbc-background-event {
+    display: none !important;
+  }
+
+  .rbc-event.rbc-selected {
+    background-color: transparent !important;
+    outline: none !important;
+  }

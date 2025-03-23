@@ -1,0 +1,23 @@
+{
+  "name": "DriveMate",
+  "short_name": "DriveMate",
+  "theme_color": "#8C61FF",
+  "background_color": "#F5F3FF",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/DM center.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/DM center.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "gcm_sender_id": "61535472161"
+} 

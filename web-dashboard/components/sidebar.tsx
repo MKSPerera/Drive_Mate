@@ -4,11 +4,21 @@ import Link from "next/link"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+/**
+ * Sidebar component props interface
+ */
 interface SidebarProps {
   open: boolean
   onClose: () => void
 }
 
+/**
+ * Sidebar component
+ * Navigation sidebar with links to main application sections
+ * 
+ * @param open - Whether the sidebar is open (for mobile)
+ * @param onClose - Function to close the sidebar
+ */
 export function Sidebar({ open, onClose }: SidebarProps) {
   return (
     <aside

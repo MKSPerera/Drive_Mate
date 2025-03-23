@@ -14,13 +14,26 @@ import { Bell, LogOut, Menu, User } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
+/**
+ * Navbar component props interface
+ */
 interface NavbarProps {
   onMenuClick: () => void
 }
 
+/**
+ * Navbar component
+ * Top navigation bar with menu toggle and user dropdown
+ * 
+ * @param onMenuClick - Function to handle sidebar menu toggle
+ */
 export function Navbar({ onMenuClick }: NavbarProps) {
   const router = useRouter()
 
+  /**
+   * Handles user logout
+   * Removes auth tokens and redirects to login page
+   */
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
@@ -29,18 +42,17 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   return (
     <header className="flex items-center justify-between border-b bg-white px-6 py-4">
-      <div className="flex items-center">
-        <Button variant="ghost" size="icon" className="mr-4 lg:hidden" onClick={onMenuClick}>
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
           <Menu className="h-6 w-6" />
         </Button>
-        <h2 className="text-2xl font-semibold text-gray-800">DriveMate Admin</h2>
+        <h1 className="text-xl font-bold lg:hidden">DriveMate</h1>
       </div>
-      <div className="flex items-center space-x-4">
-        <Link href="/notifications">
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5 text-gray-600" />
-          </Button>
-        </Link>
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" className="relative">
+          <Bell className="h-5 w-5" />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">

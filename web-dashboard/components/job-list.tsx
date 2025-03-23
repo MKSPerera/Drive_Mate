@@ -2,9 +2,13 @@
 
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronDown, ChevronUp } from "lucide-react"
+import { ChevronDown, ChevronUp, ThumbsUp, ThumbsDown } from "lucide-react"
 import { useEffect, useState } from "react"
 
+/**
+ * Job type definition
+ * Represents a transportation job with client and driver details
+ */
 type Job = {
   jobId: number
   clientName: string
@@ -19,6 +23,7 @@ type Job = {
   additionalDetails?: string
   currentState: "PENDING" | "ACCEPTED" | "ONGOING" | "COMPLETED"
   assignedDriver?: {
+    id: number
     firstName: string
     lastName: string
     contactNumber: string
@@ -31,6 +36,11 @@ type JobListProps = {
   status: "PENDING" | "ACCEPTED" | "ONGOING" | "COMPLETED"
 }
 
+/**
+ * JobList component
+ * Displays a list of jobs with expandable details
+ * Allows filtering and interaction with job entries
+ */
 export function JobList({ status }: JobListProps) {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,6 +74,7 @@ export function JobList({ status }: JobListProps) {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({ currentState: newStatus }),
       })
@@ -80,6 +91,34 @@ export function JobList({ status }: JobListProps) {
     }
   }
 
+  const handleFeedback = async (jobId: number, driverId: number, isPositive: boolean) => {
+    try {
+      const response = await fetch(`http://localhost:3333/driver-ranking/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          jobId,
+          driverId,
+          feedback: isPositive ? 'positive' : 'negative'
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback')
+      }
+
+      alert('Feedback submitted successfully')
+      // Refresh the jobs list
+      fetchJobs()
+    } catch (err) {
+      console.error('Error submitting feedback:', err)
+      alert('Failed to submit feedback. Please try again.')
+    }
+  }
+
   const toggleJobDetails = (jobId: number) => {
     setExpandedJobId(expandedJobId === jobId ? null : jobId)
   }
@@ -90,6 +129,96 @@ export function JobList({ status }: JobListProps) {
 
   if (error) {
     return <div>Error: {error}</div>
+  }
+
+  const renderActionButtons = (job: Job) => {
+    switch (status) {
+      case "PENDING":
+        return (
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              className="border-[#8C61FF] text-[#8C61FF] hover:bg-[#8C61FF] hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation()
+                // TODO: Implement update functionality
+                alert('Update functionality to be implemented')
+              }}
+            >
+              Update
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (confirm('Are you sure you want to cancel this job?')) {
+                  handleStatusChange(job.jobId, "COMPLETED")
+                }
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        )
+      case "ACCEPTED":
+        return (
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              className="border-[#8C61FF] text-[#8C61FF] hover:bg-[#8C61FF] hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation()
+                // TODO: Implement update functionality
+                alert('Update functionality to be implemented')
+              }}
+            >
+              Update
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (confirm('Are you sure you want to cancel this job?')) {
+                  handleStatusChange(job.jobId, "COMPLETED")
+                }
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
+        )
+      case "COMPLETED":
+        return job.assignedDriver && (
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleFeedback(job.jobId, job.assignedDriver!.id, true)
+              }}
+            >
+              <ThumbsUp className="h-4 w-4 mr-2" />
+              Good Job
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+              onClick={(e) => {
+                e.stopPropagation()
+                handleFeedback(job.jobId, job.assignedDriver!.id, false)
+              }}
+            >
+              <ThumbsDown className="h-4 w-4 mr-2" />
+              Poor Job
+            </Button>
+          </div>
+        )
+      default:
+        return null
+    }
   }
 
   return (
@@ -153,26 +282,7 @@ export function JobList({ status }: JobListProps) {
                       </div>
                     )}
                     <div className="mt-4">
-                      {status === "PENDING" && (
-                        <Button onClick={() => handleStatusChange(job.jobId, "ACCEPTED")} className="mr-2">
-                          Accept Job
-                        </Button>
-                      )}
-                      {status === "ACCEPTED" && (
-                        <Button onClick={() => handleStatusChange(job.jobId, "ONGOING")} className="mr-2">
-                          Start Job
-                        </Button>
-                      )}
-                      {status === "ONGOING" && (
-                        <Button onClick={() => handleStatusChange(job.jobId, "COMPLETED")}>
-                          Complete Job
-                        </Button>
-                      )}
-                      {status === "COMPLETED" && (
-                        <Button variant="outline" disabled>
-                          Completed
-                        </Button>
-                      )}
+                      {renderActionButtons(job)}
                     </div>
                   </div>
                 </TableCell>

@@ -73,14 +73,18 @@ export function AddJobForm() {
     }
 
     try {
+      // Create the job
+      const startDateTime = new Date(formData.startDate + "T" + formData.time)
+      const endDateTime = new Date(formData.endDate + "T23:59:59.999")
+
       const jobData = {
         clientName: formData.clientName,
         nationality: formData.nationality,
         numberOfPassengers: parseInt(formData.passengers),
         pickupLocation: formData.pickupLocation,
-        startDate: new Date(formData.startDate + "T" + formData.time).toISOString(),
-        endDate: new Date(formData.endDate + "T" + formData.time).toISOString(),
-        pickupTime: new Date(formData.startDate + "T" + formData.time).toISOString(),
+        startDate: startDateTime.toISOString(),
+        endDate: endDateTime.toISOString(),
+        pickupTime: startDateTime.toISOString(),
         distance: parseFloat(formData.distance),
         paymentAmount: parseFloat(formData.paymentAmount),
         additionalDetails: formData.additionalDetails,
@@ -92,6 +96,7 @@ export function AddJobForm() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(jobData),
       })
@@ -100,8 +105,28 @@ export function AddJobForm() {
         throw new Error('Failed to create job')
       }
 
+      const createdJob = await response.json()
+
       if (isPrivate) {
-        router.push("/private-jobs")
+        // Get available drivers for the date range
+        const availabilityResponse = await fetch('http://localhost:3333/drivers/available', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            startDate: startDateTime.toISOString(),
+            endDate: endDateTime.toISOString()
+          }),
+        })
+
+        if (!availabilityResponse.ok) {
+          throw new Error('Failed to fetch available drivers')
+        }
+
+        // Navigate to private jobs page with the job ID and date range
+        router.push(`/private-jobs?jobId=${createdJob.jobId}&startDate=${startDateTime.toISOString()}&endDate=${endDateTime.toISOString()}`)
       } else {
         setFormData({
           clientName: "",
@@ -175,8 +200,22 @@ export function AddJobForm() {
         <Textarea id="additionalDetails" name="additionalDetails" value={formData.additionalDetails} onChange={handleChange} className="border-[#8C61FF]" />
       </div>
       <div className="flex space-x-4">
-        <Button type="submit" className="flex-1 bg-[#8C61FF] hover:bg-[#6B46C1] text-white" onClick={(e) => handleSubmit(e, false)} disabled={loading}>{loading ? "Creating..." : "Public Post"}</Button>
-        <Button type="submit" className="flex-1 bg-[#8C61FF] hover:bg-[#6B46C1] text-white" onClick={(e) => handleSubmit(e, true)} disabled={loading}>{loading ? "Creating..." : "Private Post"}</Button>
+        <Button 
+          type="submit" 
+          className="flex-1 bg-[#8C61FF] hover:bg-[#6B46C1] text-white" 
+          onClick={(e) => handleSubmit(e, false)} 
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Public Post"}
+        </Button>
+        <Button 
+          type="submit" 
+          className="flex-1 bg-[#8C61FF] hover:bg-[#6B46C1] text-white" 
+          onClick={(e) => handleSubmit(e, true)} 
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Private Post"}
+        </Button>
       </div>
     </form>
   )

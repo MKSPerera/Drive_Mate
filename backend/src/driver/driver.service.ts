@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException, UnauthorizedException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateDriverDto } from './dto/create-driver.dto';
+import { DriverRankingService } from '../driver-ranking/driver-ranking.service';
+import { FirebaseService } from '../notifications/firebase.service';
+import { NotificationService } from '../notifications/notifications.service';
 
 // Import the JwtPayload interface to ensure type consistency
 interface JwtPayload {
@@ -16,12 +19,18 @@ export class DriverService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly driverRankingService: DriverRankingService,
+    private readonly firebaseService: FirebaseService,
+    private readonly notificationService: NotificationService
+
   ) {}
 
   async create(createDriverDto: CreateDriverDto) {
     const hashedPassword = await bcrypt.hash(createDriverDto.password, 10);
-    return this.prisma.driver.create({
+    
+    // Create the driver
+    const driver = await this.prisma.driver.create({
       data: {
         firstName: createDriverDto.firstName,
         lastName: createDriverDto.lastName,
@@ -30,19 +39,56 @@ export class DriverService {
         contactNumber: createDriverDto.contactNumber,
         vehicleType: createDriverDto.vehicleType,
         vehicleCapacity: createDriverDto.vehicleCapacity,
-        vehicleLicense: createDriverDto.vehicleLicense
-        
-        
+        vehicleLicense: createDriverDto.vehicleLicense,
+        fcmToken: createDriverDto.fcmToken,
       },
     });
-  }
 
+    // Initialize driver ranking
+    await this.driverRankingService.initializeDriverRanking(driver.id);
+
+    // Create payload for JWT
+    const payload: JwtPayload = {
+      driverId: driver.id,
+      contactNumber: driver.contactNumber
+    };
+
+    // Generate token
+    const token = await this.jwtService.signAsync(payload);
+
+     // Send welcome notification to the driver
+     if (driver.fcmToken) {
+      await this.firebaseService.sendPushNotification(
+        driver.fcmToken,
+        'Welcome to DriveMate 🚗',
+        `Hello ${driver.firstName}, your account has been created successfully!`
+      );
+    }
+
+    // Send notification to admins about new driver registration
+    await this.notificationService.createDriverSignupNotification(driver.id);
+
+    // Return driver data (excluding password) and token
+    return {
+      token,
+      driver: {
+        id: driver.id,
+        firstName: driver.firstName,
+        lastName: driver.lastName,
+        email: driver.email,
+        contactNumber: driver.contactNumber,
+        vehicleType: driver.vehicleType,
+        vehicleCapacity: driver.vehicleCapacity,
+        vehicleLicense: driver.vehicleLicense
+      }
+    };
+  }
+//login driver
   async login(data: { contactNumber: string; password: string }) {
     console.log('=== Driver Login Attempt ===');
     console.log('Login attempt for contact number:', data.contactNumber);
 
     try {
-      // Find driver with explicit field selection
       const driver = await this.prisma.driver.findUnique({ 
         where: { contactNumber: data.contactNumber },
         select: {
@@ -55,51 +101,35 @@ export class DriverService {
           vehicleType: true,
           vehicleCapacity: true,
           vehicleLicense: true,
+          fcmToken: true,  // Include fcmToken for later notifications
         }
       });
 
-      console.log('Found driver:', {
-        ...driver,
-        password: driver?.password ? '[HIDDEN]' : undefined
-      });
-
-      // Check if driver exists
       if (!driver) {
-        console.error('Driver not found for contact number:', data.contactNumber);
         throw new UnauthorizedException('Invalid contactNumber or password');
       }
 
-      // Verify required fields
-      if (!driver.id || !driver.contactNumber) {
-        console.error('Missing required fields:', {
-          hasId: !!driver.id,
-          hasContactNumber: !!driver.contactNumber
-        });
-        throw new BadRequestException('Driver record is missing required fields');
-      }
-
-      // Verify password
       const isPasswordValid = await bcrypt.compare(data.password, driver.password);
       if (!isPasswordValid) {
-        console.error('Invalid password for driver:', driver.id);
         throw new UnauthorizedException('Invalid contactNumber or password');
       }
 
-      // Create strongly-typed payload
       const payload: JwtPayload = {
         driverId: driver.id,
-        contactNumber: driver.contactNumber
+        contactNumber: driver.contactNumber,
       };
 
-      console.log('Creating token with payload:', payload);
-
-      // Generate token
       const token = await this.jwtService.signAsync(payload);
 
-      console.log('Token created successfully');
-      console.log('Token payload verification:', this.jwtService.decode(token));
+      // Send push notification if fcmToken exists
+      if (driver.fcmToken) {
+        await this.firebaseService.sendPushNotification(
+          driver.fcmToken,
+          'Login Successful 🎉',
+          `Hello ${driver.firstName}, you have successfully logged in to DriveMate.`
+        );
+      }
 
-      // Return token and driver information
       return { 
         token,
         driver: {
@@ -110,47 +140,37 @@ export class DriverService {
           email: driver.email,
           vehicleType: driver.vehicleType,
           vehicleCapacity: driver.vehicleCapacity,
-          vehicleLicense: driver.vehicleLicense
+          vehicleLicense: driver.vehicleLicense,
         }
       };
     } catch (error) {
-      console.error('Login error:', {
-        message: error.message,
-        stack: error.stack,
-        type: error.constructor.name
-      });
-
-      if (error instanceof UnauthorizedException || 
-          error instanceof BadRequestException) {
-        throw error;
-      }
-
+      console.error('Login error:', error);
       throw new UnauthorizedException('Authentication failed');
     }
   }
+//get all drivers
+  async getDrivers() {
+    const drivers = await this.prisma.driver.findMany({
+      include: {
+        driverRanking: true
+      }
+    });
 
-  getDrivers() {
-    return this.prisma.driver.findMany({
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        contactNumber:true,
-        vehicleType: true, // Include additional fields
-        vehicleCapacity: true,
-        vehicleLicense: true,
-      },
+    // Sort drivers by average rating (highest first)
+    return drivers.sort((a, b) => {
+      const ratingA = a.driverRanking?.[0]?.averageRate || 0;
+      const ratingB = b.driverRanking?.[0]?.averageRate || 0;
+      return ratingB - ratingA;
     });
   }
-
+//update driver
   async updateDriver(id: number, data: { firstName?: string; lastName?: string; email?: string; contactNumber?: string; }) {
     return this.prisma.driver.update({
       where: { id },
       data,
     });
   }
-
+//delete driver
   async deleteDriver(id: number) {
     try {
       return await this.prisma.driver.delete({
@@ -160,7 +180,7 @@ export class DriverService {
       throw new NotFoundException(`Driver with ID ${id} not found`);
     }
   }
-
+//find driver by id
   async findDriverById(id: number) {
     const driver = await this.prisma.driver.findUnique({
       where: { id },

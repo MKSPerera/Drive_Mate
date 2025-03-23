@@ -32,6 +32,6 @@ export class CreateDriverDto {
   @IsNotEmpty()
   @IsString()
   vehicleLicense: string; // License plate number or unique vehicle identifier
-  
 
+  fcmToken?: string;
 } 

@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { DriverRankingModule } from '../driver-ranking/driver-ranking.module';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { PrismaModule } from '../prisma/prisma.module';
+import { DriverJwtStrategy } from './driver-jwt.strategy';
 import { DriverController } from './driver.controller';
 import { DriverService } from './driver.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { DriverJwtStrategy } from './driver-jwt.strategy';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { DriverJwtStrategy } from './driver-jwt.strategy';
       }),
       inject: [ConfigService],
     }),
+    DriverRankingModule,
+    NotificationsModule,
   ],
   controllers: [DriverController],
   providers: [DriverService, DriverJwtStrategy]

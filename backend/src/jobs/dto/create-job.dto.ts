@@ -1,4 +1,4 @@
-import { JobState } from '@prisma/client';
+import { JobState, PostType } from '@prisma/client';
 import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateJobDto {
@@ -41,6 +41,10 @@ export class CreateJobDto {
   @IsString()
   @IsOptional()
   additionalDetails?: string;
+
+  @IsEnum(PostType)
+  @IsNotEmpty()
+  postType: PostType;
 
   @IsEnum(JobState)
   @IsOptional()

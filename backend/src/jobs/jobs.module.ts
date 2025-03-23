@@ -1,10 +1,16 @@
 import { Module } from '@nestjs/common';
-import { JobsService } from './jobs.service';
-import { JobsController } from './jobs.controller';
 import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from '../prisma/prisma.module';
+import { JobsController } from './jobs.controller';
+import { JobsService } from './jobs.service';
+import { FirebaseModule } from 'src/notifications/firebase.module';
+import { JobNotificationService } from './job-notification.service';
+import { DriverRankingModule } from 'src/driver-ranking/driver-ranking.module';
 
 @Module({
-  providers: [JobsService, PrismaService],
-  controllers: [JobsController]
+  imports: [PrismaModule, FirebaseModule, DriverRankingModule,],
+  providers: [JobsService, PrismaService, JobNotificationService],
+  controllers: [JobsController],
+  exports: [JobsService]
 })
 export class JobsModule {}

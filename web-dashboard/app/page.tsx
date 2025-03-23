@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import LoginPage from "./login/page"
 
+/**
+ * Home page component
+ * Entry point of the application
+ * Redirects to dashboard if user is logged in, otherwise shows login page
+ */
 export default function Home() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
@@ -17,6 +22,10 @@ export default function Home() {
     setIsLoading(false)
   }, [router])
 
+  /**
+   * Handles successful login
+   * Redirects to dashboard if token exists
+   */
   const handleLogin = () => {
     const token = localStorage.getItem('token')
     if (token) {

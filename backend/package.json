@@ -1,7 +1,7 @@
 {
-  "name": "drivemate-backend2",
+  "name": "drivemate-backend",
   "version": "0.0.1",
-  "description": "<p align=\"center\">\r   <a href=\"http://nestjs.com/\" target=\"blank\"><img src=\"https://nestjs.com/img/logo-small.svg\" width=\"120\" alt=\"Nest Logo\" /></a>\r </p>",
+  "description": "DriveMate Backend Application",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
@@ -18,7 +18,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migrate": "prisma migrate deploy",
+    "generate": "prisma generate",
+    "prepare": "prisma generate"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -38,7 +41,8 @@
     "passport-jwt": "^4.0.1",
     "python-shell": "^5.0.0",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -83,10 +87,5 @@
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
-  },
-  "main": ".eslintrc.js",
-  "directories": {
-    "test": "test"
-  },
-  "keywords": []
+  }
 }

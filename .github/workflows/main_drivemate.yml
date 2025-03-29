@@ -44,7 +44,25 @@ jobs:
         run: |
           mkdir -p ../deploy/dist/driver-ranking
           cp -r dist package.json package-lock.json prisma node_modules ../deploy
-          cp -r src/driver-ranking/ranking.py ../deploy/dist/driver-ranking/
+          
+          # Create a startup script to handle database migrations on Azure
+          echo "#!/bin/bash" > ../deploy/startup.sh
+          echo "cd /home/site/wwwroot" >> ../deploy/startup.sh
+          echo "export PATH=\"\$PATH:/home/site/wwwroot/node_modules/.bin\"" >> ../deploy/startup.sh
+          echo "if [ -f /home/site/wwwroot/node_modules/.bin/prisma ]; then" >> ../deploy/startup.sh
+          echo "  echo 'Running database migrations...'" >> ../deploy/startup.sh
+          echo "  /home/site/wwwroot/node_modules/.bin/prisma migrate deploy" >> ../deploy/startup.sh
+          echo "fi" >> ../deploy/startup.sh
+          echo "npm run start:prod" >> ../deploy/startup.sh
+          
+          # Make the startup script executable
+          chmod +x ../deploy/startup.sh
+          
+          # Copy Python script if it exists
+          if [ -f src/driver-ranking/ranking.py ]; then
+            cp -r src/driver-ranking/ranking.py ../deploy/dist/driver-ranking/
+          fi
+          
           # Create an empty .env file to avoid errors
           touch ../deploy/.env
       
@@ -92,8 +110,30 @@ jobs:
           app-name: 'drivemate'
           slot-name: 'Production'
           package: .
-      
-      - name: Run database migrations
-        run: |
-          npm install
-          npx prisma migrate deploy
+          
+      - name: Configure App Settings for Azure Web App
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'drivemate'
+          app-settings-json: '[
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "0",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_ZIP",
+              "value": "0",
+              "slotSetting": false
+            },
+            {
+              "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
+              "value": "true",
+              "slotSetting": false
+            },
+            {
+              "name": "STARTUP_COMMAND",
+              "value": "/home/site/wwwroot/startup.sh",
+              "slotSetting": false
+            }
+          ]'

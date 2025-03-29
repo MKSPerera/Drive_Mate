@@ -45,7 +45,8 @@ jobs:
           mkdir -p ../deploy/dist/driver-ranking
           cp -r dist package.json package-lock.json prisma node_modules ../deploy
           cp -r src/driver-ranking/ranking.py ../deploy/dist/driver-ranking/
-          cp .env.example ../deploy/.env.example
+          # Create an empty .env file to avoid errors
+          touch ../deploy/.env
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4

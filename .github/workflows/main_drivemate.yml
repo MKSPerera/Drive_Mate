@@ -63,8 +63,39 @@ jobs:
             cp -r src/driver-ranking/ranking.py ../deploy/dist/driver-ranking/
           fi
           
-          # Create an empty .env file to avoid errors
-          touch ../deploy/.env
+          # Create environment file
+          cat > ../deploy/.env << EOL
+          PORT=8080
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DIRECT_URL=${{ secrets.DIRECT_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EOL
+          
+          # Create web.config for Azure App Service
+          cat > ../deploy/web.config << EOL
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="iisnode" path="dist/main.js" verb="*" modules="iisnode" />
+              </handlers>
+              <rewrite>
+                <rules>
+                  <rule name="NestJS">
+                    <match url="/*" />
+                    <action type="Rewrite" url="dist/main.js" />
+                  </rule>
+                </rules>
+              </rewrite>
+              <iisnode 
+                nodeProcessCommandLine="node.exe"
+                watchedFiles="web.config;*.js"
+                loggingEnabled="true"
+                debuggingEnabled="true"
+              />
+            </system.webServer>
+          </configuration>
+          EOL
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -96,21 +127,6 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1C6C2ABD0D8442368C5299B18D4089ED }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4D18475CDFBD4C1DB12908161780321D }}
       
-      - name: Setup deployment environment
-        run: |
-          echo "PORT=8080" > .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "DIRECT_URL=${{ secrets.DIRECT_URL }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-      
-      - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
-        with:
-          app-name: 'drivemate'
-          slot-name: 'Production'
-          package: .
-          
       - name: Configure App Settings for Azure Web App
         uses: azure/appservice-settings@v1
         with:
@@ -127,8 +143,8 @@ jobs:
               "slotSetting": false
             },
             {
-              "name": "WEBSITE_ENABLE_SYNC_UPDATE_SITE",
-              "value": "true",
+              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+              "value": "false",
               "slotSetting": false
             },
             {
@@ -137,3 +153,12 @@ jobs:
               "slotSetting": false
             }
           ]'
+      
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'drivemate'
+          slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
+          package: .

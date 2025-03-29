@@ -6,8 +6,15 @@ declare module 'bcrypt' {
   export function compare(data: string, encrypted: string): Promise<boolean>;
 }
 
+declare module 'passport-strategy' {
+  export class Strategy {
+    constructor();
+    authenticate(req: any, options?: any): any;
+  }
+}
+
 declare module 'passport-jwt' {
-  import { Strategy as PassportStrategy } from 'passport';
+  import { Strategy as PassportStrategy } from 'passport-strategy';
   
   export interface StrategyOptions {
     jwtFromRequest: (req: any) => string | null;

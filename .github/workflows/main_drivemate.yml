@@ -28,12 +28,14 @@ jobs:
         run: |
           npm ci
           npm install -g prisma
+          npm install --save-dev @types/bcrypt @types/passport-jwt
       
       - name: Generate Prisma client
         run: npx prisma generate
       
       - name: Build application
         run: npm run build
+        continue-on-error: false
       
       - name: Run tests (non-blocking)
         run: npm test || echo "Tests failed but continuing deployment"

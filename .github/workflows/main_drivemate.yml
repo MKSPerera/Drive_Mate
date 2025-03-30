@@ -71,7 +71,7 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           EOL
           
-          # Create web.config for Azure App Service
+          # Create web.config file for IIS
           cat > ../deploy/web.config << EOL
           <?xml version="1.0" encoding="utf-8"?>
           <configuration>
@@ -96,12 +96,16 @@ jobs:
             </system.webServer>
           </configuration>
           EOL
+          
+          # Create a ZIP file for deployment
+          cd ../deploy
+          zip -r ../backend.zip *
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deploy
+          path: backend.zip
           retention-days: 1
 
   deploy:
@@ -109,7 +113,7 @@ jobs:
     needs: build
     environment:
       name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      url: https://drivemate.azurewebsites.net
     permissions:
       id-token: write
       contents: read
@@ -127,38 +131,27 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1C6C2ABD0D8442368C5299B18D4089ED }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4D18475CDFBD4C1DB12908161780321D }}
       
-      - name: Configure App Settings for Azure Web App
-        uses: azure/appservice-settings@v1
-        with:
-          app-name: 'drivemate'
-          app-settings-json: '[
-            {
-              "name": "WEBSITE_RUN_FROM_PACKAGE",
-              "value": "0",
-              "slotSetting": false
-            },
-            {
-              "name": "WEBSITE_RUN_FROM_ZIP",
-              "value": "0",
-              "slotSetting": false
-            },
-            {
-              "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
-              "value": "false",
-              "slotSetting": false
-            },
-            {
-              "name": "STARTUP_COMMAND",
-              "value": "/home/site/wwwroot/startup.sh",
-              "slotSetting": false
-            }
-          ]'
-      
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'drivemate'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE }}
-          package: .
+      - name: Deploy to Azure Web App using Azure CLI
+        run: |
+          echo "Configuring App Settings..."
+          az webapp config appsettings set --name drivemate --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings WEBSITE_RUN_FROM_PACKAGE=0 WEBSITE_RUN_FROM_ZIP=0 \
+            SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+            STARTUP_COMMAND="./startup.sh"
+          
+          echo "Deploying application using ZIP deploy..."
+          az webapp deployment source config-zip \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --name drivemate \
+            --src backend.zip
+          
+          echo "Setting up environment variables..."
+          az webapp config appsettings set --name drivemate --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --settings \
+            PORT=8080 \
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            DIRECT_URL="${{ secrets.DIRECT_URL }}" \
+            JWT_SECRET="${{ secrets.JWT_SECRET }}"
+          
+          echo "Restarting the web app..."
+          az webapp restart --name drivemate --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}

@@ -53,34 +53,63 @@ jobs:
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: npx prisma migrate deploy
       
-      - name: Modify package.json for deployment
+      - name: Prepare for Azure deployment
         working-directory: ./backend
         run: |
-          # Create a deployment script for Azure
-          echo "Creating Azure deployment configuration..."
+          # Create Azure deployment configuration files
           
-          # Use Node.js to modify package.json
+          # 1. Create .deployment file that tells Azure to skip default deployment steps
+          echo "[config]" > .deployment
+          echo "SCM_DO_BUILD_DURING_DEPLOYMENT=false" >> .deployment
+          
+          # 2. Create .deployment-config.json to provide detailed settings
+          echo '{
+            "command": "true",
+            "skipDependencyInstallation": true
+          }' > .deployment-config.json
+          
+          # 3. Create web.config for IIS configuration
+          echo '<?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <system.webServer>
+              <handlers>
+                <add name="iisnode" path="dist/main.js" verb="*" modules="iisnode" />
+              </handlers>
+              <rewrite>
+                <rules>
+                  <rule name="StaticContent">
+                    <action type="Rewrite" url="public{REQUEST_URI}" />
+                  </rule>
+                  <rule name="DynamicContent">
+                    <conditions>
+                      <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="True" />
+                    </conditions>
+                    <action type="Rewrite" url="dist/main.js" />
+                  </rule>
+                </rules>
+              </rewrite>
+              <iisnode nodeProcessCommandLine="node" />
+            </system.webServer>
+          </configuration>' > web.config
+          
+          # 4. Modify package.json to set the start script correctly
           node -e "
             const fs = require('fs');
             const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             
-            // Remove any Prisma-related scripts to prevent Azure from running them
-            if (packageJson.scripts) {
-              delete packageJson.scripts.prisma;
-              delete packageJson.scripts['prisma:generate'];
-              delete packageJson.scripts['prisma:migrate'];
-              delete packageJson.scripts['prisma:deploy'];
-            }
-            
-            // Update or add the start script to directly run the compiled app
+            // Add a clear start script
             packageJson.scripts = packageJson.scripts || {};
             packageJson.scripts.start = 'node dist/main.js';
             
+            // Remove any Prisma scripts that might confuse Azure
+            delete packageJson.scripts.prisma;
+            delete packageJson.scripts['prisma:generate'];
+            delete packageJson.scripts['prisma:migrate'];
+            delete packageJson.scripts['prisma:deploy'];
+            delete packageJson.scripts['prisma:studio'];
+            
             fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
           "
-          
-          # Create a deployment marker file
-          echo "DEPLOYMENT_DONE=true" > .deployment
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -113,17 +142,29 @@ jobs:
         run: |
           npm ci --only=production
       
+      - name: Create additional deployment files
+        run: |
+          # Create an additional file to signify this is a prepared deployment
+          echo "This deployment was prepared by GitHub Actions" > deployment-info.txt
+          
+          # Create a startup script that Azure can use
+          echo "#!/bin/bash" > startup.sh
+          echo "cd \$APP_PATH" >> startup.sh
+          echo "node dist/main.js" >> startup.sh
+          chmod +x startup.sh
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FE596A967CE04D33B1B32E3A5E6EBD1F }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_50797D44CE4C4D2DA9D2CD5F0E1CC112 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_88D1483B9B4849929D78E62B7CF035AB }}
-
-      - name: Create Azure deployment settings
-        run: |
-          # Tell Azure not to run custom deployment commands
-          echo "{\"skip_app_build\": true}" > .deployment
+      
+      - name: Configure deployment parameters
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'drivemate'
+          app-settings-json: '[{"name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "false"}, {"name": "WEBSITE_RUN_FROM_PACKAGE", "value": "0"}]'
           
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3

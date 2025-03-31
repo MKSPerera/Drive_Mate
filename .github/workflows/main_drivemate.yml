@@ -76,14 +76,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-          path: .
+          path: backend/
+
+      - name: Verify Directory Structure
+        run: ls -la backend
 
       - name: Install Production Dependencies
-        working-directory: ./backend
+        working-directory: backend
         run: npm ci --omit=dev
 
       - name: Run Prisma Migrations
-        working-directory: ./backend
+        working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
@@ -108,4 +111,4 @@ jobs:
         with:
           app-name: 'drivemate'
           slot-name: 'Production'
-          package: ./backend
+          package: backend/

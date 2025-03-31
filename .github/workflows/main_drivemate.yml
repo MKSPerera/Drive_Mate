@@ -31,7 +31,11 @@ jobs:
 
       - name: Build Application
         working-directory: ./backend
-        run: npm run build --if-present
+        run: |
+          # Install all dependencies including dev dependencies first
+          npm ci
+          # Then build the application
+          npx nest build
 
       - name: Create .env file for production
         working-directory: ./backend

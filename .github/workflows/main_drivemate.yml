@@ -32,10 +32,17 @@ jobs:
       - name: Build Application
         working-directory: ./backend
         run: |
-          # Install all dependencies including dev dependencies first
+          # Temporarily move .npmrc to prevent production-only mode during build
+          if [ -f ".npmrc" ]; then mv .npmrc .npmrc.bak; fi
+          
+          # Install all dependencies (including dev dependencies)
           npm ci
-          # Then build the application
+          
+          # Build the NestJS application
           npx nest build
+          
+          # Restore .npmrc for later steps
+          if [ -f ".npmrc.bak" ]; then mv .npmrc.bak .npmrc; fi
 
       - name: Create .env file for production
         working-directory: ./backend

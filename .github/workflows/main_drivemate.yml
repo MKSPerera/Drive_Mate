@@ -99,11 +99,15 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_50797D44CE4C4D2DA9D2CD5F0E1CC112 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_88D1483B9B4849929D78E62B7CF035AB }}
 
-      - name: Configure Azure App Service Settings
-        uses: azure/appservice-settings@v1
-        with:
-          app-name: 'drivemate'
-          app-settings-json: '[{"name": "SCM_DO_BUILD_DURING_DEPLOYMENT", "value": "false"}, {"name": "WEBSITE_RUN_FROM_PACKAGE", "value": "0"}]'
+      - name: Install dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: Run Prisma Migrations
+        run: npm run prisma:migrate
+        working-directory: backend
+
+      
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3

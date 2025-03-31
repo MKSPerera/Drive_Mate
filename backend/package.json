@@ -7,9 +7,9 @@
     "license": "UNLICENSED",
 
     "scripts": {
-        "build": "npm install prisma && prisma generate && nest build",
+        "build": "npm install --omit=dev && prisma generate && nest build",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-        "start": "nest start",
+        "start": "node dist/main.js",
         "start:dev": "nest start --watch",
         "start:debug": "nest start --debug --watch",
         "start:prod": "node dist/main",
@@ -20,7 +20,8 @@
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json",
-        "prisma:migrate": "prisma migrate deploy"
+        "prisma:migrate": "prisma migrate deploy",
+        "postinstall": "prisma generate"
     },
     "dependencies": {
         "@nestjs/common": "^10.0.0",
@@ -90,5 +91,8 @@
     "directories": {
         "test": "test"
     },
-    "keywords": []
+    "keywords": [],
+    "engines": {
+        "node": ">=20.0.0"
+    }
 }

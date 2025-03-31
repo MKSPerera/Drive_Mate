@@ -53,6 +53,35 @@ jobs:
           DIRECT_URL: ${{ secrets.DIRECT_URL }}
         run: npx prisma migrate deploy
       
+      - name: Modify package.json for deployment
+        working-directory: ./backend
+        run: |
+          # Create a deployment script for Azure
+          echo "Creating Azure deployment configuration..."
+          
+          # Use Node.js to modify package.json
+          node -e "
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            
+            // Remove any Prisma-related scripts to prevent Azure from running them
+            if (packageJson.scripts) {
+              delete packageJson.scripts.prisma;
+              delete packageJson.scripts['prisma:generate'];
+              delete packageJson.scripts['prisma:migrate'];
+              delete packageJson.scripts['prisma:deploy'];
+            }
+            
+            // Update or add the start script to directly run the compiled app
+            packageJson.scripts = packageJson.scripts || {};
+            packageJson.scripts.start = 'node dist/main.js';
+            
+            fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
+          "
+          
+          # Create a deployment marker file
+          echo "DEPLOYMENT_DONE=true" > .deployment
+      
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -91,6 +120,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_50797D44CE4C4D2DA9D2CD5F0E1CC112 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_88D1483B9B4849929D78E62B7CF035AB }}
 
+      - name: Create Azure deployment settings
+        run: |
+          # Tell Azure not to run custom deployment commands
+          echo "{\"skip_app_build\": true}" > .deployment
+          
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp

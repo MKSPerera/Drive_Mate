@@ -46,6 +46,13 @@ jobs:
         working-directory: ./backend
         run: npx prisma generate
       
+      - name: Run Prisma migrations
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+        run: npx prisma migrate deploy
+      
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -77,14 +84,6 @@ jobs:
         run: |
           npm ci --only=production
       
-      - name: Run Prisma migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL }}
-        run: |
-          npm install @prisma/client
-          npx prisma migrate deploy
-      
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -98,5 +97,4 @@ jobs:
         with:
           app-name: 'drivemate'
           slot-name: 'Production'
-          package: .
-          
+          package: . 
